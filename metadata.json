@@ -1,0 +1,5 @@
+{
+  "name": "Vier Gewinnt Pro",
+  "description": "Ein modernes, responsives Vier-Gewinnt-Spiel für zwei Spieler mit Punktezähler und Rundenmanagement.",
+  "requestFramePermissions": []
+}
