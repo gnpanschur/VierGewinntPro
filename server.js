@@ -1,15 +1,15 @@
 // server.js
 // Dies ist das Backend. Starte es mit: node server.js
 
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const cors = require('cors');
+import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
 
 const app = express();
 app.use(cors());
 
-const server = http.createServer(app);
+const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*", // Erlaubt Verbindungen von überall (für Localhost Entwicklung ok)

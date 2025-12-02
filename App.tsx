@@ -7,16 +7,23 @@ import { Lobby } from './components/Lobby';
 import { ScoreBoard } from './components/ScoreBoard';
 import { Board } from './components/Board';
 
-// Verbindung zum lokalen Server herstellen
-const socket: Socket = io('http://localhost:3001', {
+// Verbindung zum Server herstellen
+// PROFI-TIPP: Wir nutzen window.location.hostname statt "localhost".
+// Das erlaubt es dir, das Spiel auch vom Handy aus im gleichen WLAN zu steuern,
+// wenn du am PC "npm start" laufen hast und die IP-Adresse des PCs aufrufst.
+const socket: Socket = io(`http://${window.location.hostname}:3001`, {
   autoConnect: false
 });
+
+// Da wir den Raumnamen aus der UI entfernt haben, nutzen wir intern einen festen Namen.
+// So landen Host und Client automatisch im selben Spiel.
+const DEFAULT_ROOM_NAME = "VierGewinnt-Lokal";
 
 function App() {
   // Globaler State
   const [isConnected, setIsConnected] = useState(false);
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Lobby);
-  const [roomName, setRoomName] = useState('');
+  const [roomName, setRoomName] = useState(DEFAULT_ROOM_NAME);
   
   // Eigener Spieler Status
   const [myColor, setMyColor] = useState<Player | null>(null);
@@ -77,9 +84,10 @@ function App() {
 
   // --- Actions ---
 
-  const joinRoom = (room: string, pass: string) => {
-    setRoomName(room);
-    socket.emit('join_room', { roomName: room, password: pass });
+  const joinRoom = (pass: string) => {
+    // Wir nutzen immer den gleichen internen Raumnamen
+    setRoomName(DEFAULT_ROOM_NAME);
+    socket.emit('join_room', { roomName: DEFAULT_ROOM_NAME, password: pass });
   };
 
   const nextRound = () => {

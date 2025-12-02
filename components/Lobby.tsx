@@ -1,21 +1,20 @@
 import React, { useState } from 'react';
 
 interface LobbyProps {
-  onJoin: (roomName: string, password: string) => void;
+  onJoin: (password: string) => void;
 }
 
 export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
-  const [roomName, setRoomName] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!password.trim() || !roomName.trim()) {
-      setError('Bitte Raum und Passwort eingeben');
+    if (!password.trim()) {
+      setError('Bitte Passwort eingeben');
       return;
     }
-    onJoin(roomName, password);
+    onJoin(password);
   };
 
   return (
@@ -25,17 +24,6 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
         <p className="text-slate-400 mb-8">Vier Gewinnt Multiplayer</p>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="text-left">
-            <label className="text-xs uppercase text-slate-500 font-bold ml-1">Raum Name</label>
-            <input
-              type="text"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              placeholder="z.B. Spielecke"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-600"
-            />
-          </div>
-
           <div className="text-left">
             <label className="text-xs uppercase text-slate-500 font-bold ml-1">Passwort</label>
             <input
@@ -55,7 +43,7 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
             type="submit"
             className="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
-            Raum Betreten
+            Spiel Beitreten
           </button>
         </form>
       </div>
