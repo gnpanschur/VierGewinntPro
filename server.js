@@ -225,6 +225,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  
   socket.on('disconnect', () => {
     console.log('User disconnected', socket.id);
     // Optional: Spieler aus Raum entfernen oder Spiel pausieren

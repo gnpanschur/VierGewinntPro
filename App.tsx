@@ -22,6 +22,7 @@ const socket: Socket = io(SOCKET_URL, {
 // So landen Host und Client automatisch im selben Spiel.
 const DEFAULT_ROOM_NAME = "VierGewinnt-Lokal";
 
+
 function App() {
   // Globaler State
   const [isConnected, setIsConnected] = useState(false);
