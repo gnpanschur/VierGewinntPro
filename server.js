@@ -209,6 +209,7 @@ io.on('connection', (socket) => {
     });
   });
   
+  
   socket.on('reset_scores', ({ roomName }) => {
     const room = rooms[roomName];
     if (!room) return;
@@ -225,20 +226,20 @@ io.on('connection', (socket) => {
     });
   });
 
-  
   socket.on('disconnect', () => {
     console.log('User disconnected', socket.id);
     // Optional: Spieler aus Raum entfernen oder Spiel pausieren
   });
 });
 
-// ALLE anderen Anfragen an React weiterleiten
-app.get('*', (req, res) => {
-  // Wenn wir im "dist" Ordner keine Datei finden (z.B. bei einem Refresh auf einer Unterseite),
-  // senden wir die index.html zurück, damit React das Routing übernimmt.
+// ALLE anderen Anfragen an React weiterleiten.
+// WICHTIG: Wir nutzen hier '/.*/' statt '*', um den "Missing parameter name" Fehler in neueren Express Versionen zu vermeiden.
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
-server.listen(3001, () => {
-  console.log('SERVER LÄUFT AUF PORT 3001');
+// WICHTIG: Render vergibt den Port dynamisch über process.env.PORT
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`SERVER LÄUFT AUF PORT ${PORT}`);
 });
