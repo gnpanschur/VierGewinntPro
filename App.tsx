@@ -80,8 +80,10 @@ function App() {
   // --- Actions ---
 
   const joinRoom = (pass: string) => {
-    setRoomName(DEFAULT_ROOM_NAME);
-    socket.emit('join_room', { roomName: DEFAULT_ROOM_NAME, password: pass });
+    // WICHTIG: Das Passwort ist jetzt auch der Raumname!
+    // So erstellen unterschiedliche Passwörter unterschiedliche Räume.
+    setRoomName(pass);
+    socket.emit('join_room', { roomName: pass, password: pass });
   };
 
   const nextRound = () => {

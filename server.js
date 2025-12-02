@@ -209,7 +209,6 @@ io.on('connection', (socket) => {
     });
   });
   
-  
   socket.on('reset_scores', ({ roomName }) => {
     const room = rooms[roomName];
     if (!room) return;
