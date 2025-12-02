@@ -11,8 +11,8 @@
         theme: {
           extend: {
             colors: {
-              board: '#1e40af', // Dunkelblaues Brett
-              slot: '#0f172a',  // Dunkler Hintergrund für leere Slots
+              board: '#2563eb', // Helles Blau (Blue-600)
+              slot: '#172554',  // Dunkles Blau für Slots (Blue-950)
               p1: '#ef4444',    // Rot
               p2: '#eab308',    // Gelb
             },
@@ -40,7 +40,7 @@
 }
 </script>
 </head>
-  <body class="bg-slate-900 text-white antialiased overflow-x-hidden">
+  <body class="bg-gradient-to-br from-blue-50 to-indigo-200 text-slate-800 antialiased overflow-x-hidden min-h-screen">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

@@ -143,17 +143,17 @@ function App() {
   }, [gameStatus, myColor, currentPlayer, selectedColumn, roomName, playerCount]);
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col items-center py-8 relative">
+    <div className="min-h-screen flex flex-col items-center py-8 relative">
       
       {/* Fehler Popup */}
       {errorMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-600 text-white px-6 py-3 rounded-full shadow-xl font-bold animate-bounce">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-6 py-3 rounded-full shadow-xl font-bold animate-bounce border-2 border-white">
           {errorMessage}
         </div>
       )}
 
       {/* Connection Status (klein unten) */}
-      <div className="fixed bottom-2 right-2 text-xs text-slate-600">
+      <div className="fixed bottom-2 right-2 text-xs text-slate-500 bg-white/50 px-2 py-1 rounded">
         Status: {isConnected ? 'Online' : 'Offline'} | ID: {socket.id}
       </div>
 
@@ -168,9 +168,9 @@ function App() {
             winner={lastWinner}
           />
           {/* Info wer ich bin */}
-          <div className="mb-4 bg-slate-800 px-4 py-2 rounded-full border border-slate-700">
-            <span className="text-slate-400 mr-2">Du bist:</span>
-            <span className={`font-bold ${myColor === Player.Red ? 'text-red-500' : 'text-yellow-400'}`}>
+          <div className="mb-4 bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full shadow-sm border border-white/50">
+            <span className="text-slate-500 mr-2 font-medium">Du spielst als:</span>
+            <span className={`font-bold ${myColor === Player.Red ? 'text-red-500' : 'text-yellow-600'}`}>
               {myColor}
             </span>
           </div>
@@ -184,13 +184,11 @@ function App() {
           <Lobby onJoin={joinRoom} />
         )}
 
-        {/* Menu überspringen wir jetzt und gehen direkt von Lobby ins Spiel bei Multiplayer */}
-
         {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
              
              {playerCount < 2 && (
-               <div className="mb-4 text-yellow-400 font-bold animate-pulse">
+               <div className="mb-4 text-orange-500 bg-orange-100 px-4 py-2 rounded-lg inline-block font-bold animate-pulse border border-orange-200">
                  ⚠️ Warte auf zweiten Spieler...
                </div>
              )}
@@ -205,20 +203,19 @@ function App() {
              />
              
              {gameStatus === GameStatus.Playing && myColor === currentPlayer && (
-               <p className="mt-4 text-slate-400 text-sm animate-pulse">
-                 {selectedColumn !== null ? 'Tippe erneut zum Bestätigen' : 'Tippe eine Spalte zum Auswählen'}
+               <p className="mt-6 text-slate-500 text-sm font-medium animate-pulse bg-white/50 inline-block px-4 py-1 rounded-full">
+                 {selectedColumn !== null ? '👇 Tippe erneut zum Bestätigen' : '👈 Tippe eine Spalte zum Auswählen'}
                </p>
              )}
              {gameStatus === GameStatus.Playing && myColor !== currentPlayer && (
-               <p className="mt-4 text-slate-600 text-sm">
-                 Gegner ist am Zug...
+               <p className="mt-6 text-slate-400 text-sm font-medium">
+                 Gegner denkt nach...
                </p>
              )}
           </div>
         )}
 
       </div>
-      
 
       {/* FOOTER CONTROLS */}
       {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
@@ -226,25 +223,25 @@ function App() {
           {gameStatus === GameStatus.Finished && (
             <button 
               onClick={nextRound}
-              className="px-6 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg transform transition hover:-translate-y-1 w-full sm:w-auto"
+              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 transform transition hover:-translate-y-1 w-full sm:w-auto"
             >
-              Nächste Runde
+              Nächste Runde Starten
             </button>
           )}
 
           <div className="flex gap-4 w-full sm:w-auto justify-center">
             <button 
               onClick={resetScores}
-              className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-400 font-semibold rounded-lg transition border border-slate-700 text-sm"
+              className="px-6 py-3 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition shadow-md border border-slate-200 text-sm"
             >
-              Punkte 0:0
+              Reset 0:0
             </button>
 
             <button 
               onClick={exitGame}
-              className="px-6 py-3 bg-red-900/50 hover:bg-red-900/80 text-red-200 font-semibold rounded-lg transition border border-red-900/50 text-sm"
+              className="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-600 font-bold rounded-xl transition shadow-sm border border-red-200 text-sm"
             >
-              Exit
+              Verlassen
             </button>
           </div>
         </div>

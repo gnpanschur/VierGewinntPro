@@ -19,20 +19,20 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 animate-in fade-in zoom-in duration-500 w-full max-w-md mx-auto">
-      <div className="bg-slate-800 p-8 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-slate-700 w-full">
-        <h2 className="text-3xl font-bold text-white mb-2">Lobby Login</h2>
-        <p className="text-slate-400 mb-6">Vier Gewinnt Multiplayer</p>
+      <div className="bg-white/90 backdrop-blur-md p-8 rounded-3xl shadow-2xl shadow-blue-900/10 border border-white/50 w-full">
+        <h2 className="text-4xl font-black text-slate-800 mb-2 tracking-tight">Login</h2>
+        <p className="text-slate-500 mb-8 font-medium">Vier Gewinnt Multiplayer</p>
 
         {/* Hinweis Textbox */}
-        <div className="bg-blue-900/30 border border-blue-500/30 p-4 rounded-lg mb-6">
-          <p className="text-blue-200 text-sm italic font-medium leading-relaxed">
+        <div className="bg-blue-50 border border-blue-100 p-4 rounded-xl mb-8">
+          <p className="text-blue-800 text-sm italic font-medium leading-relaxed">
             "Ein Passwort eingeben, irgendeins – und dann bitte an den Mitspieler weitergeben, sonst bringt das Ganze nix."
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="text-left">
-            <label className="text-xs uppercase text-slate-500 font-bold ml-1">Passwort</label>
+            <label className="text-xs uppercase text-slate-400 font-bold ml-1 mb-1 block tracking-wider">Raum Passwort</label>
             <input
               type="password"
               value={password}
@@ -41,14 +41,14 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
                 setError('');
               }}
               placeholder="••••••"
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-600"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 text-slate-800 font-bold text-lg focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-400 transition-all placeholder-slate-300"
             />
-            {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+            {error && <p className="text-red-500 text-sm mt-2 font-medium bg-red-50 p-2 rounded-lg">{error}</p>}
           </div>
 
           <button
             type="submit"
-            className="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-200 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             Spiel Beitreten
           </button>
