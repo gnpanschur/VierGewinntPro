@@ -5,14 +5,23 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Setup für Dateipfade in ES Modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors());
 
+// Server statische Dateien aus dem "dist" Ordner (wo React hin gebaut wird)
+app.use(express.static(path.join(__dirname, 'dist')));
+
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Erlaubt Verbindungen von überall (für Localhost Entwicklung ok)
+    origin: "*", 
     methods: ["GET", "POST"]
   }
 });
@@ -220,6 +229,13 @@ io.on('connection', (socket) => {
     console.log('User disconnected', socket.id);
     // Optional: Spieler aus Raum entfernen oder Spiel pausieren
   });
+});
+
+// ALLE anderen Anfragen an React weiterleiten
+app.get('*', (req, res) => {
+  // Wenn wir im "dist" Ordner keine Datei finden (z.B. bei einem Refresh auf einer Unterseite),
+  // senden wir die index.html zurück, damit React das Routing übernimmt.
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 server.listen(3001, () => {

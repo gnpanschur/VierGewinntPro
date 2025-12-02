@@ -8,10 +8,13 @@ import { ScoreBoard } from './components/ScoreBoard';
 import { Board } from './components/Board';
 
 // Verbindung zum Server herstellen
-// PROFI-TIPP: Wir nutzen window.location.hostname statt "localhost".
-// Das erlaubt es dir, das Spiel auch vom Handy aus im gleichen WLAN zu steuern,
-// wenn du am PC "npm start" laufen hast und die IP-Adresse des PCs aufrufst.
-const socket: Socket = io(`http://${window.location.hostname}:3001`, {
+// UPDATE FÜR INTERNET:
+// Wir prüfen, ob wir lokal entwickeln (localhost) oder ob die App produktiv läuft.
+// Wenn produktiv (z.B. über ngrok), verbinden wir uns relativ zum Serverpfad.
+const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const SOCKET_URL = isDev ? `http://${window.location.hostname}:3001` : undefined;
+
+const socket: Socket = io(SOCKET_URL, {
   autoConnect: false
 });
 
