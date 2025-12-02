@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="https://picsum.photos/32/32" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Vier Gewinnt</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -39,9 +39,30 @@
   }
 }
 </script>
+<style>
+  /* Verstecke Scrollbalken für App-Feeling */
+  body {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+  
+  /* Landscape Warnung für Mobile */
+  @media only screen and (orientation: landscape) and (max-height: 600px) {
+    #landscape-warning { display: flex !important; }
+    #root { display: none !important; }
+  }
+</style>
 </head>
-  <body class="bg-gradient-to-br from-blue-50 to-indigo-200 text-slate-800 antialiased overflow-x-hidden min-h-screen">
-    <div id="root"></div>
+  <body class="bg-gradient-to-br from-blue-50 to-indigo-200 text-slate-800 antialiased overflow-hidden h-[100dvh] w-screen flex justify-center bg-fixed">
+    
+    <!-- Landscape Warnung Overlay -->
+    <div id="landscape-warning" class="hidden fixed inset-0 z-50 bg-blue-600 text-white flex-col items-center justify-center text-center p-8">
+      <div class="text-6xl mb-4">📱</div>
+      <h2 class="text-2xl font-bold mb-2">Bitte drehen</h2>
+      <p>Dieses Spiel ist für den Portrait-Modus optimiert.</p>
+    </div>
+
+    <div id="root" class="w-full max-w-md h-full flex flex-col shadow-2xl bg-white/30 backdrop-blur-sm sm:rounded-xl sm:my-4 sm:h-[calc(100dvh-2rem)] sm:border sm:border-white/50"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>

@@ -8,9 +8,6 @@ import { ScoreBoard } from './components/ScoreBoard';
 import { Board } from './components/Board';
 
 // Verbindung zum Server herstellen
-// UPDATE FÜR INTERNET:
-// Wir prüfen, ob wir lokal entwickeln (localhost) oder ob die App produktiv läuft.
-// Wenn produktiv (z.B. über ngrok), verbinden wir uns relativ zum Serverpfad.
 const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const SOCKET_URL = isDev ? `http://${window.location.hostname}:3001` : undefined;
 
@@ -18,8 +15,6 @@ const socket: Socket = io(SOCKET_URL, {
   autoConnect: false
 });
 
-// Da wir den Raumnamen aus der UI entfernt haben, nutzen wir intern einen festen Namen.
-// So landen Host und Client automatisch im selben Spiel.
 const DEFAULT_ROOM_NAME = "VierGewinnt-Lokal";
 
 function App() {
@@ -33,7 +28,7 @@ function App() {
   const [playerCount, setPlayerCount] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Spiel State (kommt jetzt vom Server)
+  // Spiel State
   const [board, setBoard] = useState<BoardState>(createEmptyBoard());
   const [currentPlayer, setCurrentPlayer] = useState<Player>(Player.Red);
   const [winningCells, setWinningCells] = useState<[number, number][] | null>(null);
@@ -41,7 +36,7 @@ function App() {
   const [scoreYellow, setScoreYellow] = useState(0);
   const [lastWinner, setLastWinner] = useState<Player | null>(null);
 
-  // "2 Taps" Logik State (Bleibt im Frontend, ist reine UI)
+  // "2 Taps" Logik State
   const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
 
   useEffect(() => {
@@ -54,14 +49,12 @@ function App() {
 
     socket.on('error_message', (msg) => {
       setErrorMessage(msg);
-      // Kurze Zeit später Fehler ausblenden
       setTimeout(() => setErrorMessage(''), 3000);
     });
 
     socket.on('player_assigned', (color) => {
       setMyColor(color);
-      console.log("Ich bin Spieler:", color);
-      setGameStatus(GameStatus.Playing); // Sobald wir drin sind, zeigen wir das Brett
+      setGameStatus(GameStatus.Playing);
     });
 
     socket.on('game_update', (data) => {
@@ -73,7 +66,6 @@ function App() {
       setWinningCells(data.winningCells);
       setLastWinner(data.winner);
       setPlayerCount(data.playerCount);
-      // Wenn das Spiel vom Server aktualisiert wurde, resetten wir die lokale Auswahl
       setSelectedColumn(null);
     });
 
@@ -88,7 +80,6 @@ function App() {
   // --- Actions ---
 
   const joinRoom = (pass: string) => {
-    // Wir nutzen immer den gleichen internen Raumnamen
     setRoomName(DEFAULT_ROOM_NAME);
     socket.emit('join_room', { roomName: DEFAULT_ROOM_NAME, password: pass });
   };
@@ -97,15 +88,7 @@ function App() {
     socket.emit('next_round', { roomName });
   };
 
-  const restartCurrentRound = () => {
-    // Im Multiplayer ist "Runde neustarten" oft gleich wie nächste Runde, 
-    // oder wir nutzen es um das Spiel komplett zu resetten.
-    // Hier senden wir next_round, um das Brett zu leeren.
-    socket.emit('next_round', { roomName });
-  };
-
   const exitGame = () => {
-    // Einfach Seite neu laden oder State resetten
     window.location.reload();
   };
 
@@ -116,80 +99,73 @@ function App() {
   const handleColumnClick = useCallback((colIndex: number) => {
     if (gameStatus !== GameStatus.Playing) return;
     
-    // Bin ich überhaupt dran?
     if (myColor !== currentPlayer) {
       setErrorMessage("Du bist nicht am Zug!");
       setTimeout(() => setErrorMessage(''), 2000);
       return;
     }
 
-    // Warten auf zweiten Spieler?
     if (playerCount < 2) {
       setErrorMessage("Warte auf Gegner...");
       setTimeout(() => setErrorMessage(''), 2000);
       return;
     }
 
-    // "2 Taps" Logik:
     if (selectedColumn !== colIndex) {
-      // Tap 1: Auswählen
       setSelectedColumn(colIndex);
       return;
     }
 
-    // Tap 2: Bestätigen -> An Server senden
     socket.emit('make_move', { roomName, colIndex });
     
   }, [gameStatus, myColor, currentPlayer, selectedColumn, roomName, playerCount]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center py-8 relative">
+    <div className="h-full flex flex-col relative w-full overflow-hidden">
       
       {/* Fehler Popup */}
       {errorMessage && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-6 py-3 rounded-full shadow-xl font-bold animate-bounce border-2 border-white">
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-6 py-2 rounded-full shadow-xl font-bold animate-bounce border-2 border-white text-sm whitespace-nowrap">
           {errorMessage}
         </div>
       )}
 
-      {/* Connection Status (klein unten) */}
-      <div className="fixed bottom-2 right-2 text-xs text-slate-500 bg-white/50 px-2 py-1 rounded">
-        Status: {isConnected ? 'Online' : 'Offline'} | ID: {socket.id}
+      {/* HEADER BEREICH (Scoreboard) - Fixierte Höhe */}
+      <div className="pt-4 px-4 flex-none z-10">
+        {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
+          <div className="w-full flex flex-col items-center animate-in slide-in-from-top-4 fade-in duration-500">
+             <ScoreBoard 
+              scoreRed={scoreRed} 
+              scoreYellow={scoreYellow} 
+              currentPlayer={currentPlayer}
+              isFinished={gameStatus === GameStatus.Finished}
+              winner={lastWinner}
+            />
+            
+            {/* Info wer ich bin */}
+            <div className="mt-2 bg-white/80 backdrop-blur-sm px-4 py-1 rounded-full shadow-sm border border-white/50 text-xs">
+              <span className="text-slate-500 mr-2 font-medium">Du bist:</span>
+              <span className={`font-bold uppercase tracking-wider ${myColor === Player.Red ? 'text-red-500' : 'text-yellow-600'}`}>
+                {myColor}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* HEADER */}
-      {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
-        <div className="w-full flex flex-col items-center">
-           <ScoreBoard 
-            scoreRed={scoreRed} 
-            scoreYellow={scoreYellow} 
-            currentPlayer={currentPlayer}
-            isFinished={gameStatus === GameStatus.Finished}
-            winner={lastWinner}
-          />
-          {/* Info wer ich bin */}
-          <div className="mb-4 bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full shadow-sm border border-white/50">
-            <span className="text-slate-500 mr-2 font-medium">Du spielst als:</span>
-            <span className={`font-bold ${myColor === Player.Red ? 'text-red-500' : 'text-yellow-600'}`}>
-              {myColor}
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* CONTENT AREA */}
-      <div className="flex-grow flex flex-col justify-center items-center w-full px-4">
+      {/* HAUPT BEREICH (Board / Lobby) - Nimmt restlichen Platz ein und zentriert */}
+      <div className="flex-grow flex flex-col justify-center items-center w-full px-2 py-2 overflow-hidden relative">
         
         {gameStatus === GameStatus.Lobby && (
           <Lobby onJoin={joinRoom} />
         )}
 
         {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center">
+          <div className="w-full flex flex-col items-center justify-center h-full">
              
              {playerCount < 2 && (
-               <div className="mb-4 text-orange-500 bg-orange-100 px-4 py-2 rounded-lg inline-block font-bold animate-pulse border border-orange-200">
-                 ⚠️ Warte auf zweiten Spieler...
+               <div className="absolute top-4 z-20 text-orange-600 bg-orange-100 px-4 py-2 rounded-lg font-bold animate-pulse border border-orange-200 text-sm shadow-md">
+                 ⚠️ Warte auf Gegner...
                </div>
              )}
 
@@ -203,46 +179,42 @@ function App() {
              />
              
              {gameStatus === GameStatus.Playing && myColor === currentPlayer && (
-               <p className="mt-6 text-slate-500 text-sm font-medium animate-pulse bg-white/50 inline-block px-4 py-1 rounded-full">
-                 {selectedColumn !== null ? '👇 Tippe erneut zum Bestätigen' : '👈 Tippe eine Spalte zum Auswählen'}
-               </p>
-             )}
-             {gameStatus === GameStatus.Playing && myColor !== currentPlayer && (
-               <p className="mt-6 text-slate-400 text-sm font-medium">
-                 Gegner denkt nach...
+               <p className="absolute bottom-2 text-slate-500 text-xs font-medium bg-white/80 px-3 py-1 rounded-full shadow-sm animate-pulse">
+                 {selectedColumn !== null ? '👇 Tippen zum Bestätigen' : '👈 Spalte auswählen'}
                </p>
              )}
           </div>
         )}
-
       </div>
 
-      {/* FOOTER CONTROLS */}
+      {/* FOOTER BEREICH (Buttons) - Fixierte Höhe */}
       {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
-        <div className="mt-8 flex flex-wrap justify-center gap-4 px-4 w-full max-w-2xl">
-          {gameStatus === GameStatus.Finished && (
-            <button 
-              onClick={nextRound}
-              className="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl shadow-lg shadow-green-200 transform transition hover:-translate-y-1 w-full sm:w-auto"
-            >
-              Nächste Runde Starten
-            </button>
-          )}
+        <div className="pb-6 pt-2 px-4 flex-none z-10 bg-gradient-to-t from-white/20 to-transparent">
+          <div className="flex flex-col gap-3 w-full">
+            {gameStatus === GameStatus.Finished && (
+              <button 
+                onClick={nextRound}
+                className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl shadow-lg shadow-green-200 transform transition active:scale-95 text-lg"
+              >
+                Nächste Runde
+              </button>
+            )}
 
-          <div className="flex gap-4 w-full sm:w-auto justify-center">
-            <button 
-              onClick={resetScores}
-              className="px-6 py-3 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-xl transition shadow-md border border-slate-200 text-sm"
-            >
-              Reset 0:0
-            </button>
+            <div className="flex gap-3 w-full">
+              <button 
+                onClick={resetScores}
+                className="flex-1 py-3 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-2xl transition shadow-md border border-slate-200 text-sm"
+              >
+                Reset 0:0
+              </button>
 
-            <button 
-              onClick={exitGame}
-              className="px-6 py-3 bg-red-100 hover:bg-red-200 text-red-600 font-bold rounded-xl transition shadow-sm border border-red-200 text-sm"
-            >
-              Verlassen
-            </button>
+              <button 
+                onClick={exitGame}
+                className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-500 font-bold rounded-2xl transition shadow-sm border border-red-100 text-sm"
+              >
+                Exit
+              </button>
+            </div>
           </div>
         </div>
       )}
