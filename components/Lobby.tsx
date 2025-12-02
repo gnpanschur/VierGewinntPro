@@ -21,7 +21,14 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
     <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-6 animate-in fade-in zoom-in duration-500 w-full max-w-md mx-auto">
       <div className="bg-slate-800 p-8 rounded-2xl shadow-[0_0_40px_rgba(0,0,0,0.5)] border border-slate-700 w-full">
         <h2 className="text-3xl font-bold text-white mb-2">Lobby Login</h2>
-        <p className="text-slate-400 mb-8">Vier Gewinnt Multiplayer</p>
+        <p className="text-slate-400 mb-6">Vier Gewinnt Multiplayer</p>
+
+        {/* Hinweis Textbox */}
+        <div className="bg-blue-900/30 border border-blue-500/30 p-4 rounded-lg mb-6">
+          <p className="text-blue-200 text-sm italic font-medium leading-relaxed">
+            "Ein Passwort eingeben, irgendeins – und dann bitte an den Mitspieler weitergeben, sonst bringt das Ganze nix."
+          </p>
+        </div>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="text-left">
