@@ -22,7 +22,7 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Lobby);
   const [roomName, setRoomName] = useState(DEFAULT_ROOM_NAME);
-  
+
   // Eigener Spieler Status
   const [myColor, setMyColor] = useState<Player | null>(null);
   const [playerCount, setPlayerCount] = useState(0);
@@ -36,8 +36,19 @@ function App() {
   const [scoreYellow, setScoreYellow] = useState(0);
   const [lastWinner, setLastWinner] = useState<Player | null>(null);
 
-  // "2 Taps" Logik State
-  const [selectedColumn, setSelectedColumn] = useState<number | null>(null);
+
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch((err) => {
+        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
 
   useEffect(() => {
     socket.connect();
@@ -66,7 +77,7 @@ function App() {
       setWinningCells(data.winningCells);
       setLastWinner(data.winner);
       setPlayerCount(data.playerCount);
-      setSelectedColumn(null);
+
     });
 
     return () => {
@@ -100,7 +111,7 @@ function App() {
 
   const handleColumnClick = useCallback((colIndex: number) => {
     if (gameStatus !== GameStatus.Playing) return;
-    
+
     if (myColor !== currentPlayer) {
       setErrorMessage("Du bist nicht am Zug!");
       setTimeout(() => setErrorMessage(''), 2000);
@@ -113,18 +124,16 @@ function App() {
       return;
     }
 
-    if (selectedColumn !== colIndex) {
-      setSelectedColumn(colIndex);
-      return;
-    }
-
+    // Direct move execution without selection step
     socket.emit('make_move', { roomName, colIndex });
-    
-  }, [gameStatus, myColor, currentPlayer, selectedColumn, roomName, playerCount]);
+
+  }, [gameStatus, myColor, currentPlayer, roomName, playerCount]);
 
   return (
     <div className="h-full flex flex-col relative w-full overflow-hidden">
-      
+
+
+
       {/* Fehler Popup */}
       {errorMessage && (
         <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 bg-red-500 text-white px-6 py-2 rounded-full shadow-xl font-bold animate-bounce border-2 border-white text-sm whitespace-nowrap">
@@ -136,18 +145,18 @@ function App() {
       <div className="pt-4 px-4 flex-none z-10">
         {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
           <div className="w-full flex flex-col items-center animate-in slide-in-from-top-4 fade-in duration-500">
-             <ScoreBoard 
-              scoreRed={scoreRed} 
-              scoreYellow={scoreYellow} 
+            <ScoreBoard
+              scoreRed={scoreRed}
+              scoreYellow={scoreYellow}
               currentPlayer={currentPlayer}
               isFinished={gameStatus === GameStatus.Finished}
               winner={lastWinner}
             />
-            
+
             {/* Info wer ich bin */}
-            <div className="mt-2 bg-white/80 backdrop-blur-sm px-4 py-1 rounded-full shadow-sm border border-white/50 text-xs">
-              <span className="text-slate-500 mr-2 font-medium">Du bist:</span>
-              <span className={`font-bold uppercase tracking-wider ${myColor === Player.Red ? 'text-red-500' : 'text-yellow-600'}`}>
+            <div className="mt-4 bg-white/90 backdrop-blur-md px-8 py-3 rounded-2xl shadow-md border-2 border-white/60 text-xl transform scale-110">
+              <span className="text-black mr-3 font-bold">Du bist:</span>
+              <span className={`font-black uppercase tracking-widest ${myColor === Player.Red ? 'text-red-600 drop-shadow-sm' : 'text-yellow-600 drop-shadow-sm'}`}>
                 {myColor}
               </span>
             </div>
@@ -157,44 +166,52 @@ function App() {
 
       {/* HAUPT BEREICH (Board / Lobby) - Nimmt restlichen Platz ein und zentriert */}
       <div className="flex-grow flex flex-col justify-center items-center w-full px-2 py-2 overflow-hidden relative">
-        
+
         {gameStatus === GameStatus.Lobby && (
           <Lobby onJoin={joinRoom} />
         )}
 
         {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
           <div className="w-full flex flex-col items-center justify-center h-full">
-             
-             {playerCount < 2 && (
-               <div className="absolute top-4 z-20 text-orange-600 bg-orange-100 px-4 py-2 rounded-lg font-bold animate-pulse border border-orange-200 text-sm shadow-md">
-                 ⚠️ Warte auf Gegner...
-               </div>
-             )}
 
-             <Board 
-               board={board} 
-               onColumnClick={handleColumnClick} 
-               winningCells={winningCells}
-               disabled={gameStatus === GameStatus.Finished || myColor !== currentPlayer || playerCount < 2}
-               selectedColumn={selectedColumn}
-               currentPlayer={currentPlayer}
-             />
-             
-             {gameStatus === GameStatus.Playing && myColor === currentPlayer && (
-               <p className="absolute bottom-2 text-slate-500 text-xs font-medium bg-white/80 px-3 py-1 rounded-full shadow-sm animate-pulse">
-                 {selectedColumn !== null ? '👇 Tippen zum Bestätigen' : '👈 Spalte auswählen'}
-               </p>
-             )}
+            {playerCount < 2 && (
+              <div className="absolute top-4 z-20 text-orange-600 bg-orange-100 px-4 py-2 rounded-lg font-bold animate-pulse border border-orange-200 text-sm shadow-md">
+                ⚠️ Warte auf Gegner...
+              </div>
+            )}
+
+            <Board
+              board={board}
+              onColumnClick={handleColumnClick}
+              winningCells={winningCells}
+              disabled={gameStatus === GameStatus.Finished || myColor !== currentPlayer || playerCount < 2}
+              currentPlayer={currentPlayer}
+            />
+
+
           </div>
         )}
       </div>
+
+      {/* Fullscreen Button (Start) */}
+      <button
+        onClick={toggleFullScreen}
+        className="flex-none mb-2 z-50 bg-white/40 hover:bg-white/60 text-black px-8 py-3 rounded-full backdrop-blur-md transition-all shadow-xl border-2 border-white/50 hover:scale-105 active:scale-95 flex items-center gap-3 self-center"
+        title="Vollbild umschalten"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+        </svg>
+        <span className="text-lg font-bold tracking-wider uppercase">Full-Screen</span>
+      </button>
+      {/* Fullscreen Button (End) */}
 
       {/* FOOTER BEREICH (Buttons) - Fixierte Höhe */}
       {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (
         <div className="pb-6 pt-2 px-4 flex-none z-10 bg-gradient-to-t from-white/20 to-transparent">
           <div className="flex flex-col gap-3 w-full">
             {gameStatus === GameStatus.Finished && (
-              <button 
+              <button
                 onClick={nextRound}
                 className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl shadow-lg shadow-green-200 transform transition active:scale-95 text-lg"
               >
@@ -203,14 +220,14 @@ function App() {
             )}
 
             <div className="flex gap-3 w-full">
-              <button 
+              <button
                 onClick={resetScores}
-                className="flex-1 py-3 bg-white hover:bg-slate-50 text-slate-600 font-bold rounded-2xl transition shadow-md border border-slate-200 text-sm"
+                className="flex-1 py-3 bg-white hover:bg-slate-50 text-black font-bold rounded-2xl transition shadow-md border border-slate-200 text-sm"
               >
                 Reset 0:0
               </button>
 
-              <button 
+              <button
                 onClick={exitGame}
                 className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-500 font-bold rounded-2xl transition shadow-sm border border-red-100 text-sm"
               >

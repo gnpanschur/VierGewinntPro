@@ -6,17 +6,15 @@ interface BoardProps {
   onColumnClick: (colIndex: number) => void;
   winningCells: [number, number][] | null;
   disabled: boolean;
-  selectedColumn: number | null;
   currentPlayer: Player;
 }
 
-export const Board: React.FC<BoardProps> = ({ 
-  board, 
-  onColumnClick, 
-  winningCells, 
-  disabled, 
-  selectedColumn,
-  currentPlayer 
+export const Board: React.FC<BoardProps> = ({
+  board,
+  onColumnClick,
+  winningCells,
+  disabled,
+  currentPlayer
 }) => {
   const isWinningCell = (row: number, col: number) => {
     if (!winningCells) return false;
@@ -27,57 +25,45 @@ export const Board: React.FC<BoardProps> = ({
     // Das Board behält das Seitenverhältnis 7:6 bei und füllt maximal die Breite ODER Höhe
     <div className="relative w-full max-w-[95%] aspect-[7/6] max-h-[65vh]">
       <div className="w-full h-full p-2 bg-blue-600 rounded-2xl shadow-[0_10px_30px_rgba(37,99,235,0.4)] border-b-8 border-blue-800 flex flex-col">
-        
+
         {/* Das Gitter */}
         <div className="flex-1 flex gap-[1.5%] bg-blue-500 p-[2%] rounded-xl border-4 border-blue-400/50 shadow-inner h-full">
           {board[0].map((_, colIndex) => {
-            const isSelected = selectedColumn === colIndex;
-            
+
             return (
-              <div 
-                key={colIndex} 
+              <div
+                key={colIndex}
                 className={`flex-1 flex flex-col justify-between group ${!disabled ? 'cursor-pointer' : 'cursor-default'}`}
                 onClick={() => !disabled && onColumnClick(colIndex)}
               >
-                {/* Spalten-Pfeil (Nur sichtbar wenn ausgewählt oder Hover auf Desktop) */}
-                {!disabled && (
-                  <div className={`
-                    absolute -top-6 w-[12%] ml-[1%] transition-all duration-300 z-10
-                    ${isSelected ? 'opacity-100 translate-y-2' : 'opacity-0'}
-                  `}
-                  style={{ left: `${colIndex * 14.28}%` }}
-                  >
-                     <div className="mx-auto w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-white drop-shadow-md"></div>
-                  </div>
-                )}
+
 
                 {board.map((row, rowIndex) => {
                   const cell = row[colIndex];
                   const isWinner = isWinningCell(rowIndex, colIndex);
 
                   return (
-                    <div 
+                    <div
                       key={`${rowIndex}-${colIndex}`}
                       className={`
                         relative w-full aspect-square rounded-full bg-blue-950 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)] overflow-hidden
-                        ${isSelected ? 'ring-2 md:ring-4 ring-white/40 bg-blue-900' : ''}
                       `}
                     >
                       {/* Der Stein */}
                       {cell && (
-                        <div 
+                        <div
                           className={`
                             w-full h-full rounded-full shadow-[inset_-2px_-2px_4px_rgba(0,0,0,0.2),inset_2px_2px_4px_rgba(255,255,255,0.3)]
                             border border-black/5
                             ${cell === Player.Red ? 'bg-red-500' : 'bg-yellow-400'}
                             ${isWinner ? 'animate-pulse brightness-110' : ''}
                           `}
-                          style={{ 
+                          style={{
                             animation: !isWinner ? 'dropIn 0.4s cubic-bezier(0.25, 1, 0.5, 1)' : 'pulse 1s infinite',
                           }}
                         />
                       )}
-                      
+
                       {/* Gewinn-Indikator Ring */}
                       {isWinner && (
                         <div className="absolute inset-0 border-4 border-white rounded-full animate-ping opacity-50"></div>
@@ -90,7 +76,7 @@ export const Board: React.FC<BoardProps> = ({
           })}
         </div>
       </div>
-      
+
       {/* Füße des Spielbretts - rein dekorativ */}
       <div className="absolute -bottom-4 -left-2 w-[5%] h-[15%] bg-blue-700 rounded-b-lg -z-10 rotate-12" />
       <div className="absolute -bottom-4 -right-2 w-[5%] h-[15%] bg-blue-700 rounded-b-lg -z-10 -rotate-12" />
