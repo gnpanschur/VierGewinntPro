@@ -1,8 +1,10 @@
 npm run dev
-https://github.com/gnpanschur/VierGewinntPro.git
+
+https://viergewinntpro-rkjh.onrender.com   (Render Adresse)
+https://github.com/gnpanschur/VierGewinntPro.git   (GitHub Adresse)
 https://github.com/gunpan/VierGewinntPro.git     (Alt)
 
-[MODIFY] 
+\[MODIFY]
 Wir bauen die Lobby um.
 Feld A: blau
 Ich erstelle ein Spiel: (Text)
@@ -23,5 +25,7 @@ Groß- und Kleinschreibung wird ignoriert.
 
 
 
+
 Run the app:
 npm run dev  Startet die App lokal. Danach läuft sie meist unter  http://localhost:3000
+
