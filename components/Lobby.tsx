@@ -97,6 +97,7 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
         </form>
       </div>
 
+      <div className="text-[10px] text-gray-400 mt-2">v2.0 Mobile Optimized</div>
     </div>
   );
 };
