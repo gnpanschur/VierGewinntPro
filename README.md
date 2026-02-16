@@ -1,20 +1,27 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+npm run dev
+https://github.com/gnpanschur/VierGewinntPro.git
+https://github.com/gunpan/VierGewinntPro.git     (Alt)
 
-# Run and deploy your AI Studio app
+[MODIFY] 
+Wir bauen die Lobby um.
+Feld A: blau
+Ich erstelle ein Spiel: (Text)
+(1. Gib deinen Namen ein = (Textfeld)
+2. Gib den Namen des Gegners ein) = (Textfeld) (ist gleichzeitig Passwort)
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/drive/1IDpJdkcKZZyaiEfM1J94N49Mi6xrmUPX
-
-## Run Locally
-
-**Prerequisites:**  Node.js
+Feld B: gelb
+Ich spiele mit: (Text)
+(1. Gib deinen Namen ein = (Textfeld) (ist Passwort)
+Groß- und Kleinschreibung wird ignoriert.
 
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+
+
+
+
+
+
+
+
+Run the app:
+npm run dev  Startet die App lokal. Danach läuft sie meist unter  http://localhost:3000
