@@ -27,7 +27,12 @@ export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center min-h-[60vh] gap-6 w-full max-w-4xl mx-auto p-4 animate-in fade-in zoom-in duration-500">
+    <div className="flex flex-col items-center justify-start min-h-[60vh] gap-6 w-full max-w-md mx-auto p-4 pt-8 animate-in fade-in zoom-in duration-500">
+
+      {/* Header */}
+      <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-400 mb-4 drop-shadow-lg text-center">
+        VIER GEWINNT PRO
+      </h1>
 
       {/* FELD A: BLAU (Spiel erstellen) */}
       <div className="flex-1 w-full bg-blue-100/90 backdrop-blur-md p-8 rounded-3xl shadow-xl shadow-blue-500/20 border-2 border-blue-200">
