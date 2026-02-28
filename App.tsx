@@ -42,6 +42,56 @@ function App() {
   const [scoreYellow, setScoreYellow] = useState(0);
   const [lastWinner, setLastWinner] = useState<Player | null>(null);
 
+  // Wake Lock Ref
+  const wakeLock = React.useRef<WakeLockSentinel | null>(null);
+
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock.current = await navigator.wakeLock.request('screen');
+        console.log('Screen Wake Lock is active');
+      }
+    } catch (err: any) {
+      console.error(`${err.name}, ${err.message}`);
+    }
+  };
+
+  const releaseWakeLock = async () => {
+    if (wakeLock.current !== null) {
+      try {
+        await wakeLock.current.release();
+        wakeLock.current = null;
+        console.log('Screen Wake Lock has been released');
+      } catch (err: any) {
+        console.error(`${err.name}, ${err.message}`);
+      }
+    }
+  };
+
+  useEffect(() => {
+    // Wenn das Spiel läuft, fordere den Wake Lock an.
+    // Falls das Spiel beendet ist oder wir in der Lobby sind, gib ihn frei.
+    if (gameStatus === GameStatus.Playing) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+
+    const handleVisibilityChange = () => {
+      // Wenn der User tabbt, geht der Wake Lock verloren. Wir fordern ihn neu an, wenn wir noch spielen.
+      if (document.visibilityState === 'visible' && gameStatus === GameStatus.Playing) {
+        requestWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      releaseWakeLock(); // Cleanup on unmount
+    };
+  }, [gameStatus]);
+
 
 
   const toggleFullScreen = () => {
