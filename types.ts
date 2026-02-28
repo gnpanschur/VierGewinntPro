@@ -24,3 +24,13 @@ export interface WinResult {
   isDraw: boolean;
   winningCells: [number, number][] | null; // Koordinaten der gewinnenden Steine
 }
+
+// Spielerinformationen für die Lobby
+export interface PlayerInfo {
+  id: string;
+  color: string;
+  name: string;
+  avatar: string;
+  ready: boolean;
+  isMe: boolean;
+}

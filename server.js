@@ -21,7 +21,7 @@ app.use(express.static(path.join(__dirname, 'dist')));
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
@@ -74,12 +74,12 @@ function checkWin(board, lastRow, lastCol, player) {
 }
 
 // Speicher für alle laufenden Spiele
-const rooms = {}; 
+const rooms = {};
 
 io.on('connection', (socket) => {
   console.log('Ein Spieler hat sich verbunden:', socket.id);
 
-  socket.on('join_room', ({ roomName, password }) => {
+  socket.on('join_room', ({ roomName, password, playerName }) => {
     // Raum Logik
     if (!rooms[roomName]) {
       // Neuen Raum erstellen
@@ -90,7 +90,7 @@ io.on('connection', (socket) => {
         roundStarter: 'Rot',
         players: [],
         scores: { 'Rot': 0, 'Gelb': 0 },
-        gameStatus: 'PLAYING',
+        gameStatus: 'LOBBY',
         winningCells: null,
         winner: null
       };
@@ -115,17 +115,26 @@ io.on('connection', (socket) => {
     }
 
     // Spieler zum Raum hinzufügen
-    if (!room.players.find(p => p.id === socket.id)) {
+    let player = room.players.find(p => p.id === socket.id);
+    if (!player) {
       const color = room.players.length === 0 ? 'Rot' : 'Gelb';
-      room.players.push({ id: socket.id, color });
+      player = {
+        id: socket.id,
+        color,
+        name: playerName || 'Spieler',
+        ready: false,
+        avatar: color === 'Rot' ? '🔴' : '🟡'
+      };
+      room.players.push(player);
       socket.join(roomName);
-      
+
       // Dem Spieler sagen, welche Farbe er ist
       socket.emit('player_assigned', color);
     } else {
-       // Reconnect Fall: Farbe wiederfinden
-       const p = room.players.find(p => p.id === socket.id);
-       socket.emit('player_assigned', p.color);
+      // Reconnect Fall: Farbe wiederfinden
+      socket.emit('player_assigned', player.color);
+      if (playerName) player.name = playerName;
+      socket.join(roomName);
     }
 
     // Update an alle im Raum senden
@@ -136,8 +145,51 @@ io.on('connection', (socket) => {
       gameStatus: room.gameStatus,
       winningCells: room.winningCells,
       winner: room.winner,
-      playerCount: room.players.length
+      playerCount: room.players.length,
+      players: room.players
     });
+  });
+
+  socket.on('toggle_ready', ({ roomName }) => {
+    const room = rooms[roomName];
+    if (!room) return;
+
+    const player = room.players.find(p => p.id === socket.id);
+    if (player) {
+      player.ready = !player.ready;
+
+      io.to(roomName).emit('game_update', {
+        board: room.board,
+        currentPlayer: room.currentPlayer,
+        scores: room.scores,
+        gameStatus: room.gameStatus,
+        winningCells: room.winningCells,
+        winner: room.winner,
+        playerCount: room.players.length,
+        players: room.players
+      });
+    }
+  });
+
+  socket.on('start_game', ({ roomName }) => {
+    const room = rooms[roomName];
+    if (!room) return;
+
+    if (room.players.length >= 2 && room.players.every(p => p.ready)) {
+      room.gameStatus = 'PLAYING';
+      io.to(roomName).emit('game_update', {
+        board: room.board,
+        currentPlayer: room.currentPlayer,
+        scores: room.scores,
+        gameStatus: room.gameStatus,
+        winningCells: room.winningCells,
+        winner: room.winner,
+        playerCount: room.players.length,
+        players: room.players
+      });
+    } else {
+      socket.emit('error_message', 'Noch nicht alle bereit!');
+    }
   });
 
   socket.on('make_move', ({ roomName, colIndex }) => {
@@ -146,7 +198,7 @@ io.on('connection', (socket) => {
 
     // Validierungen
     if (room.gameStatus !== 'PLAYING') return;
-    
+
     // Prüfen ob der Spieler der dran ist auch der Sender ist
     const player = room.players.find(p => p.id === socket.id);
     if (!player || player.color !== room.currentPlayer) return;
@@ -180,7 +232,8 @@ io.on('connection', (socket) => {
       gameStatus: room.gameStatus,
       winningCells: room.winningCells,
       winner: room.winner,
-      playerCount: room.players.length
+      playerCount: room.players.length,
+      players: room.players
     });
   });
 
@@ -205,23 +258,25 @@ io.on('connection', (socket) => {
       gameStatus: room.gameStatus,
       winningCells: room.winningCells,
       winner: room.winner,
-      playerCount: room.players.length
+      playerCount: room.players.length,
+      players: room.players
     });
   });
-  
+
   socket.on('reset_scores', ({ roomName }) => {
     const room = rooms[roomName];
     if (!room) return;
     room.scores = { 'Rot': 0, 'Gelb': 0 };
     io.to(roomName).emit('game_update', {
-        // ... restliche Daten mitsenden, damit Frontend nicht crasht
-        board: room.board,
-        currentPlayer: room.currentPlayer,
-        scores: room.scores,
-        gameStatus: room.gameStatus,
-        winningCells: room.winningCells,
-        winner: room.winner,
-        playerCount: room.players.length
+      // ... restliche Daten mitsenden, damit Frontend nicht crasht
+      board: room.board,
+      currentPlayer: room.currentPlayer,
+      scores: room.scores,
+      gameStatus: room.gameStatus,
+      winningCells: room.winningCells,
+      winner: room.winner,
+      playerCount: room.players.length,
+      players: room.players
     });
   });
 

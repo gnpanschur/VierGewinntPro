@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { BoardState, GameStatus, Player } from './types';
+import { BoardState, GameStatus, Player, PlayerInfo } from './types';
 import { createEmptyBoard } from './utils/gameLogic';
 import { Menu } from './components/Menu';
 import { Lobby } from './components/Lobby';
@@ -20,8 +20,14 @@ const DEFAULT_ROOM_NAME = "VierGewinnt-Lokal";
 function App() {
   // Globaler State
   const [isConnected, setIsConnected] = useState(false);
+  const getInitialRoomName = () => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('room') || DEFAULT_ROOM_NAME;
+  };
+
   const [gameStatus, setGameStatus] = useState<GameStatus>(GameStatus.Lobby);
-  const [roomName, setRoomName] = useState(DEFAULT_ROOM_NAME);
+  const [roomName, setRoomName] = useState(getInitialRoomName);
+  const [players, setPlayers] = useState<PlayerInfo[]>([]);
 
   // Eigener Spieler Status
   const [myColor, setMyColor] = useState<Player | null>(null);
@@ -77,7 +83,12 @@ function App() {
       setWinningCells(data.winningCells);
       setLastWinner(data.winner);
       setPlayerCount(data.playerCount);
-
+      if (data.players) {
+        setPlayers(data.players.map((p: any) => ({
+          ...p,
+          isMe: p.id === socket.id
+        })));
+      }
     });
 
     return () => {
@@ -90,11 +101,19 @@ function App() {
 
   // --- Actions ---
 
-  const joinRoom = (pass: string) => {
-    // WICHTIG: Das Passwort ist jetzt auch der Raumname!
-    // So erstellen unterschiedliche Passwörter unterschiedliche Räume.
-    setRoomName(pass);
-    socket.emit('join_room', { roomName: pass, password: pass });
+  const joinRoom = (name: string, roomToken: string) => {
+    setRoomName(roomToken);
+    // Push the room token to URL to make the URL shareable immediately if they didn't join via link
+    window.history.replaceState(null, '', `?room=${roomToken}`);
+    socket.emit('join_room', { roomName: roomToken, password: roomToken, playerName: name });
+  };
+
+  const toggleReady = () => {
+    socket.emit('toggle_ready', { roomName });
+  };
+
+  const startGame = () => {
+    socket.emit('start_game', { roomName });
   };
 
   const nextRound = () => {
@@ -168,7 +187,13 @@ function App() {
       <div className="flex-grow flex flex-col justify-center items-center w-full px-2 py-2 overflow-hidden relative">
 
         {gameStatus === GameStatus.Lobby && (
-          <Lobby onJoin={joinRoom} />
+          <Lobby
+            players={players}
+            roomName={roomName}
+            onJoin={joinRoom}
+            onToggleReady={toggleReady}
+            onStartGame={startGame}
+          />
         )}
 
         {(gameStatus === GameStatus.Playing || gameStatus === GameStatus.Finished) && (

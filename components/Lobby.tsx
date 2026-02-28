@@ -1,103 +1,119 @@
 import React, { useState } from 'react';
+import './Lobby.css';
+import { PlayerInfo } from '../types';
 
 interface LobbyProps {
-  onJoin: (password: string) => void;
+  players: PlayerInfo[];
+  roomName: string;
+  onJoin: (name: string, roomToken: string) => void;
+  onToggleReady: () => void;
+  onStartGame: () => void;
 }
 
-export const Lobby: React.FC<LobbyProps> = ({ onJoin }) => {
-  // Create State
-  const [creatorName, setCreatorName] = useState('');
-  const [opponentName, setOpponentName] = useState('');
+export const Lobby: React.FC<LobbyProps> = ({ players, roomName, onJoin, onToggleReady, onStartGame }) => {
+  const [joinName, setJoinName] = useState('');
 
-  // Join State
-  const [joinerName, setJoinerName] = useState('');
+  const inviteLink = `${window.location.origin}?room=${roomName}`;
 
-  const handleCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (opponentName.trim()) {
-      onJoin(opponentName.trim().toLowerCase());
-    }
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      alert("Link kopiert! Schicke ihn an deine Freunde.");
+    }).catch((err) => {
+      console.error('Failed to copy link: ', err);
+    });
   };
+
+  const myPlayerInfo = players.find(p => p.isMe);
+  const isJoined = !!myPlayerInfo;
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (joinerName.trim()) {
-      onJoin(joinerName.trim().toLowerCase());
+    if (joinName.trim()) {
+      onJoin(joinName.trim(), roomName);
     }
   };
 
+  const readyCount = players.filter(p => p.ready).length;
+  const totalPlayers = players.length;
+  // Spiel startet nur mit genau 2 Spielern, die beide bereit sind
+  const canStart = totalPlayers === 2 && readyCount === 2;
+  const isCreator = players.length > 0 && players[0].isMe;
+
+  const slots = [];
+  // Wir zeigen immer 4 Slots an (auch wenn nur 2 spielen für die Optik)
+  for (let i = 0; i < 4; i++) {
+    const p = players[i];
+    const isActive = !!p;
+    const isReady = p && p.ready;
+
+    slots.push(
+      <div key={i} className={`slot ${isActive ? 'active' : ''} ${isReady ? 'ready' : ''}`}>
+        <span className="avatar">{p ? p.avatar : '❓'}</span>
+        <span className="player-name">{p ? p.name : 'Offen'}</span>
+        <span className="player-status">{!p ? '' : (isReady ? 'BEREIT' : 'NICHT BEREIT')}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col items-center justify-start min-h-[60vh] gap-3 md:gap-6 w-full max-w-md mx-auto p-2 pt-2 md:p-4 md:pt-8 animate-in fade-in zoom-in duration-500">
+    <div className="lobby-container">
+      <div className="lobby-card" id="lobby-root">
+        <div className="lobby-header">
+          <h1>Multiplayer Lobby</h1>
+          <p>Warte auf Mitspieler...</p>
+        </div>
 
-      {/* Header */}
-      <h1 className="text-2xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-400 mb-2 md:mb-4 drop-shadow-lg text-center leading-tight">
-        VIER GEWINNT PRO
-      </h1>
+        <div className="invite-box">
+          <input type="text" id="invite-link" readOnly value={inviteLink} />
+          <button className="copy-btn" onClick={handleCopyLink}>Link kopieren</button>
+        </div>
 
-      {/* FELD A: BLAU (Spiel erstellen) */}
-      <div className="flex-1 w-full bg-blue-100/90 backdrop-blur-md p-4 md:p-8 rounded-xl md:rounded-3xl shadow-xl shadow-blue-500/20 border-2 border-blue-200">
-        <h2 className="text-lg md:text-3xl font-black text-black mb-3 md:mb-6 tracking-tight leading-none">Ich erstelle ein Spiel:</h2>
+        <div className="player-grid" id="player-grid">
+          {slots}
+        </div>
 
-        <form onSubmit={handleCreate} className="flex flex-col gap-2 md:gap-4">
-          <div>
-            <label className="text-[10px] md:text-xs uppercase text-black font-bold ml-1 mb-0.5 block tracking-wider">1. Gib deinen Namen ein</label>
-            <input
-              type="text"
-              value={creatorName}
-              onChange={(e) => setCreatorName(e.target.value)}
-              placeholder="Dein Vorname"
-              className="w-full bg-white border-2 border-blue-200 rounded-lg md:rounded-xl px-3 py-1.5 md:px-4 md:py-3 text-black font-bold text-sm md:text-lg focus:outline-none focus:border-blue-500 transition-all placeholder-gray-400"
-            />
-          </div>
+        <div className="lobby-footer">
+          {!isJoined ? (
+            <form onSubmit={handleJoin} className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={joinName}
+                onChange={(e) => setJoinName(e.target.value)}
+                placeholder="Dein Vorname"
+                className="w-full bg-[#0f172a] text-white border-2 border-slate-600 rounded-lg px-4 py-3 text-lg focus:outline-none focus:border-[#10b981] transition-all font-bold"
+                required
+              />
+              <button
+                type="submit"
+                className="start-btn enabled mt-2"
+                disabled={!joinName.trim()}
+              >
+                Beitreten
+              </button>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <button
+                className={`start-btn ${myPlayerInfo?.ready ? '' : 'enabled'} ${myPlayerInfo?.ready ? 'bg-slate-700 text-white' : ''}`}
+                onClick={onToggleReady}
+                style={myPlayerInfo?.ready ? { background: '#334155', color: 'white', border: '2px solid #10b981' } : {}}
+              >
+                {myPlayerInfo?.ready ? "Bereit! (Klicken zum Abbrechen)" : "Ich bin Bereit!"}
+              </button>
 
-          <div>
-            <label className="text-[10px] md:text-xs uppercase text-black font-bold ml-1 mb-0.5 block tracking-wider">2. Zwilling Name (Gegner)</label>
-            <input
-              type="text"
-              value={opponentName}
-              onChange={(e) => setOpponentName(e.target.value)}
-              placeholder="Gegner Vorname"
-              className="w-full bg-white border-2 border-blue-200 rounded-lg md:rounded-xl px-3 py-1.5 md:px-4 md:py-3 text-black font-bold text-sm md:text-lg focus:outline-none focus:border-blue-500 transition-all placeholder-gray-400"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={!opponentName.trim()}
-            className="mt-2 md:mt-4 w-full py-2.5 md:py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-lg md:rounded-xl shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-xl uppercase tracking-wider"
-          >
-            Spiel erstellen
-          </button>
-        </form>
+              {isCreator && (
+                <button
+                  className={`start-btn ${canStart ? 'enabled' : ''}`}
+                  disabled={!canStart}
+                  onClick={onStartGame}
+                >
+                  {canStart ? "Spiel starten!" : `Warte auf alle (${readyCount}/2)`}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
-
-      {/* FELD B: GELB (Spiel beitreten) */}
-      <div className="flex-1 w-full bg-yellow-100/90 backdrop-blur-md p-4 md:p-8 rounded-xl md:rounded-3xl shadow-xl shadow-yellow-500/20 border-2 border-yellow-200">
-        <h2 className="text-lg md:text-3xl font-black text-black mb-3 md:mb-6 tracking-tight leading-none">Ich spiele mit:</h2>
-
-        <form onSubmit={handleJoin} className="flex flex-col gap-2 md:gap-4">
-          <div>
-            <label className="text-[10px] md:text-xs uppercase text-black font-bold ml-1 mb-0.5 block tracking-wider">1. Gib deinen Namen ein</label>
-            <input
-              type="text"
-              value={joinerName}
-              onChange={(e) => setJoinerName(e.target.value)}
-              placeholder="Dein Vorname"
-              className="w-full bg-white border-2 border-yellow-200 rounded-lg md:rounded-xl px-3 py-1.5 md:px-4 md:py-3 text-black font-bold text-sm md:text-lg focus:outline-none focus:border-yellow-500 transition-all placeholder-gray-400"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={!joinerName.trim()}
-            className="mt-2 md:mt-4 w-full py-2.5 md:py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-black rounded-lg md:rounded-xl shadow-lg transform transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed text-base md:text-xl uppercase tracking-wider"
-          >
-            Beitreten
-          </button>
-        </form>
-      </div>
-
-      <div className="text-[10px] text-gray-400 mt-2">v2.0 Mobile Optimized</div>
     </div>
   );
 };
