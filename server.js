@@ -282,7 +282,35 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('User disconnected', socket.id);
-    // Optional: Spieler aus Raum entfernen oder Spiel pausieren
+
+    // Find all rooms the user was in and remove them
+    for (const [roomName, room] of Object.entries(rooms)) {
+      const playerIndex = room.players.findIndex(p => p.id === socket.id);
+
+      if (playerIndex !== -1) {
+        room.players.splice(playerIndex, 1);
+        room.gameStatus = 'LOBBY'; // Reset game status when someone leaves
+        room.board = createEmptyBoard();
+
+        if (room.players.length === 0) {
+          // Clean up empty rooms
+          delete rooms[roomName];
+          console.log(`Room ${roomName} deleted because it's empty.`);
+        } else {
+          // Notify remaining players
+          io.to(roomName).emit('game_update', {
+            board: room.board,
+            currentPlayer: room.currentPlayer,
+            scores: room.scores,
+            gameStatus: room.gameStatus,
+            winningCells: room.winningCells,
+            winner: room.winner,
+            playerCount: room.players.length,
+            players: room.players
+          });
+        }
+      }
+    }
   });
 });
 
