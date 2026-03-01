@@ -31,6 +31,5 @@ export interface PlayerInfo {
   color: string;
   name: string;
   avatar: string;
-  ready: boolean;
   isMe: boolean;
 }

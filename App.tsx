@@ -158,10 +158,6 @@ function App() {
     socket.emit('join_room', { roomName: roomToken, password: roomToken, playerName: name });
   };
 
-  const toggleReady = () => {
-    socket.emit('toggle_ready', { roomName });
-  };
-
   const startGame = () => {
     socket.emit('start_game', { roomName });
   };
@@ -241,7 +237,6 @@ function App() {
             players={players}
             roomName={roomName}
             onJoin={joinRoom}
-            onToggleReady={toggleReady}
             onStartGame={startGame}
           />
         )}

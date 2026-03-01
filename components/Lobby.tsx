@@ -6,11 +6,10 @@ interface LobbyProps {
   players: PlayerInfo[];
   roomName: string;
   onJoin: (name: string, roomToken: string) => void;
-  onToggleReady: () => void;
   onStartGame: () => void;
 }
 
-export const Lobby: React.FC<LobbyProps> = ({ players, roomName, onJoin, onToggleReady, onStartGame }) => {
+export const Lobby: React.FC<LobbyProps> = ({ players, roomName, onJoin, onStartGame }) => {
   const [joinName, setJoinName] = useState('');
 
   const inviteLink = `${window.location.origin}?room=${roomName}`;
@@ -33,10 +32,9 @@ export const Lobby: React.FC<LobbyProps> = ({ players, roomName, onJoin, onToggl
     }
   };
 
-  const readyCount = players.filter(p => p.ready).length;
   const totalPlayers = players.length;
-  // Spiel startet nur mit genau 2 Spielern, die beide bereit sind
-  const canStart = totalPlayers === 2 && readyCount === 2;
+  // Spiel startet nur mit genau 2 Spielern
+  const canStart = totalPlayers === 2;
   const isCreator = players.length > 0 && players[0].isMe;
 
   const slots = [];
@@ -44,13 +42,11 @@ export const Lobby: React.FC<LobbyProps> = ({ players, roomName, onJoin, onToggl
   for (let i = 0; i < 4; i++) {
     const p = players[i];
     const isActive = !!p;
-    const isReady = p && p.ready;
 
     slots.push(
-      <div key={i} className={`slot ${isActive ? 'active' : ''} ${isReady ? 'ready' : ''}`}>
+      <div key={i} className={`slot ${isActive ? 'active' : ''}`}>
         <span className="avatar">{p ? p.avatar : '❓'}</span>
         <span className="player-name">{p ? p.name : 'Offen'}</span>
-        <span className="player-status">{!p ? '' : (isReady ? 'BEREIT' : 'NICHT BEREIT')}</span>
       </div>
     );
   }
@@ -93,22 +89,18 @@ export const Lobby: React.FC<LobbyProps> = ({ players, roomName, onJoin, onToggl
             </form>
           ) : (
             <div className="flex flex-col gap-3">
-              <button
-                className={`start-btn ${myPlayerInfo?.ready ? '' : 'enabled'} ${myPlayerInfo?.ready ? 'bg-slate-700 text-white' : ''}`}
-                onClick={onToggleReady}
-                style={myPlayerInfo?.ready ? { background: '#334155', color: 'white', border: '2px solid #10b981' } : {}}
-              >
-                {myPlayerInfo?.ready ? "Bereit! (Klicken zum Abbrechen)" : "Ich bin Bereit!"}
-              </button>
-
-              {isCreator && (
+              {isCreator ? (
                 <button
                   className={`start-btn ${canStart ? 'enabled' : ''}`}
                   disabled={!canStart}
                   onClick={onStartGame}
                 >
-                  {canStart ? "Spiel starten!" : `Warte auf alle (${readyCount}/2)`}
+                  {canStart ? "Spiel starten!" : `Warte auf Mitspieler (${totalPlayers}/2)`}
                 </button>
+              ) : (
+                <div className="text-center text-slate-300 font-medium py-3">
+                  Warte darauf, dass der Host das Spiel startet...
+                </div>
               )}
             </div>
           )}

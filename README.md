@@ -29,3 +29,9 @@ Groß- und Kleinschreibung wird ignoriert.
 Run the app:
 npm run dev  Startet die App lokal. Danach läuft sie meist unter  http://localhost:3000
 
+
+
+http://localhost:3000?room=VierGewinnt-Lokal
+
+
+

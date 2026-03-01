@@ -122,7 +122,6 @@ io.on('connection', (socket) => {
         id: socket.id,
         color,
         name: playerName || 'Spieler',
-        ready: false,
         avatar: color === 'Rot' ? '🔴' : '🟡'
       };
       room.players.push(player);
@@ -150,32 +149,11 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('toggle_ready', ({ roomName }) => {
-    const room = rooms[roomName];
-    if (!room) return;
-
-    const player = room.players.find(p => p.id === socket.id);
-    if (player) {
-      player.ready = !player.ready;
-
-      io.to(roomName).emit('game_update', {
-        board: room.board,
-        currentPlayer: room.currentPlayer,
-        scores: room.scores,
-        gameStatus: room.gameStatus,
-        winningCells: room.winningCells,
-        winner: room.winner,
-        playerCount: room.players.length,
-        players: room.players
-      });
-    }
-  });
-
   socket.on('start_game', ({ roomName }) => {
     const room = rooms[roomName];
     if (!room) return;
 
-    if (room.players.length >= 2 && room.players.every(p => p.ready)) {
+    if (room.players.length >= 2) {
       room.gameStatus = 'PLAYING';
       io.to(roomName).emit('game_update', {
         board: room.board,
